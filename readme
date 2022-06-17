@@ -1,0 +1,16 @@
+This is a simple neural network NEAT-based algorithm. This algorithm is heavily influenced by real-life evolution.
+
+Node class encapsulates a weight and bias. It also has a list of all connected nodes.
+
+Neural network class creates a rectangular dense grid of nodes. It is able to be given an output and run it through
+all the nodes.
+
+Population is where a large amount of neural networks (individuals) are created.
+
+The NEAT algorithm would create a population. It would then find the best individual in the population (highest fitness),
+and create offspring from that best.
+
+I learned about NEAT algorithm through a youtuber: CodeBullet https://www.youtube.com/c/CodeBullet.
+Other resources include
+    https://neat-python.readthedocs.io/en/latest/neat_overview.html,
+    https://cs231n.github.io/convolutional-networks/
