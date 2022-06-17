@@ -1,5 +1,5 @@
 from math import e
-from random import randrange, uniform
+from random import uniform
 
 
 class Node:
@@ -157,11 +157,11 @@ def randomNode(numInputs: int) -> Node:
 
     # create a list with a random weight (in the range of Min/Max weights)
     # length of list is numInputs
-    randomWeights = [randrange(Node.MIN_WEIGHT, Node.MAX_WEIGHT) for _ in range(numInputs)]
+    randomWeights = [uniform(Node.MIN_WEIGHT, Node.MAX_WEIGHT) for _ in range(numInputs)]
 
     # creates a list with random biases (in the range of Min/Max biases)
     # length of list is numInputs
-    randomBiases = [randrange(Node.MIN_BIAS, Node.MAX_BIAS) for _ in range(numInputs)]
+    randomBiases = [uniform(Node.MIN_BIAS, Node.MAX_BIAS) for _ in range(numInputs)]
 
     # uses default sigmoid value
     defaultSigmoid = Node.DEFAULT_SIGMOID_VALUE
