@@ -148,6 +148,14 @@ class Node:
         # does not change the children list
         return Node(weightsCopy, biasesCopy, self.children, self.sigmoid_value)
 
+    def updateWeights(self, weightChange: list[float]):
+
+        self.weights = list(map(lambda weight, change: weight - change, self.weights, weightChange))
+
+    def updateBiases(self, biasChange: list[float]):
+
+        self.biases = list(map(lambda bias, change: bias - change, self.weights, biasChange))
+
 
 def randomNode(numInputs: int) -> Node:
     """
