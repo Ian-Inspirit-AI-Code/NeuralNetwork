@@ -34,9 +34,6 @@ def main():
     # calls evolve to create the best set of weights
     population.evolve(inputs, goal, numIterations, writeToJson=False)
 
-    # there should be some way to store this
-    # likely, this would write to a json file
-
 
 if __name__ == '__main__':
     main()

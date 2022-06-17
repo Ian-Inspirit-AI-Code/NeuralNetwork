@@ -83,7 +83,7 @@ class Population:
         self.individuals.append(best)
 
     def evolve(self, inputs: list[float], goal: float, numIterations: int,
-               writeToJson: bool = False, jsonFilename: str = None):
+               writeToJson: bool = False, jsonFilename: str = "bestInPopulation"):
         """
         :param inputs:
         :param goal:
@@ -93,6 +93,8 @@ class Population:
         :return: nothing
         """
 
+        # creates a dictionary object that will be written to a json file
+        # only creates if writeToJson is true
         if writeToJson:
             dictionary = dict()
 
@@ -110,6 +112,8 @@ class Population:
             # printing the value of the best (not necessary)
             print(f"Best is: {best.value}")
 
+            # adding the best in current generation
+            # dictionary will always be created. your python compiler may give a warning here
             if writeToJson:
                 dictionary[f"Generation {generationNumber}"] = best.asDict()
 
@@ -117,7 +121,12 @@ class Population:
             # keeps the best in the population
             self.fromIndividual(self.findBest(goal))
 
+        # write to a json file if writeToJson is true
         if writeToJson:
-            filename = jsonFilename if jsonFilename is not None else "bestInPopulation.json"
-            with open(filename, 'w') as f:
+
+            # default filename (if not specified) is bestInPopulation
+            # open in write form clears all previous text in json
+            with open(jsonFilename, 'w') as f:
+
+                # dump the dictionary into the json file
                 json.dump(dictionary, f)
