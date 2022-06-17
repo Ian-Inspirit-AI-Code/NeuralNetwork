@@ -88,8 +88,8 @@ class Population:
         :param inputs:
         :param goal:
         :param numIterations:
-        :param writeToJson:
-        :param jsonFilename:
+        :param writeToJson: whether to output in a json or not
+        :param jsonFilename: name of file to output data to
         :return: nothing
         """
 
@@ -126,7 +126,7 @@ class Population:
 
             # default filename (if not specified) is bestInPopulation
             # open in write form clears all previous text in json
-            with open(jsonFilename, 'w') as f:
+            with open(jsonFilename + ".json", 'w') as f:
 
                 # dump the dictionary into the json file
-                json.dump(dictionary, f)
+                json.dump(dictionary, f, indent=4)
