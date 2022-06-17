@@ -17,7 +17,7 @@ class NeuralNetwork:
             # children are not initialized here
             # array dimensions are numLayers x nodesInLayer
             self.nodes = [[randomNode(numInputs) if layer == 0 else randomNode(nodesInLayer)
-                           for layer in range(nodesInLayer)] for _ in range(numLayers)]
+                           for _ in range(nodesInLayer)] for layer in range(numLayers)]
 
         # if network is given a set of nodes
         else:
@@ -110,3 +110,14 @@ class NeuralNetwork:
         # only changing the nodes (creating copies)
         # other parameters are kept
         return NeuralNetwork(self.numInputs, self.nodesInLayer, self.numLayers, copiedNodes)
+
+    def asDict(self) -> dict:
+        """
+        :return: a json representation of this neural network
+        """
+
+        # the keys are the layer number and the node number (in each layer)
+        # this is just a two-dimensional list comprehension
+        # makes a dict for each layer, and a dict for each layer in the network
+        return {f"Layer {numLayer}": {f"Node {numberNode}": node.asDict() for (numberNode, node) in enumerate(layer)}
+                for (numLayer, layer) in enumerate(self.nodes)}

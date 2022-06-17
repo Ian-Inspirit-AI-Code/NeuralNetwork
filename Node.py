@@ -148,6 +148,14 @@ class Node:
         # does not change the children list
         return Node(weightsCopy, biasesCopy, self.children, self.sigmoid_value)
 
+    def asDict(self) -> dict:
+        """
+        :return: a dictionary representation of the node
+        """
+
+        # keys are weights and biases
+        return {"Weights": self.weights, "Biases": self.biases}
+
 
 def randomNode(numInputs: int) -> Node:
     """

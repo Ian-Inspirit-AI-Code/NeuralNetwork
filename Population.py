@@ -1,3 +1,5 @@
+import json
+
 from NeuralNetwork import NeuralNetwork
 from copy import deepcopy
 
@@ -80,16 +82,22 @@ class Population:
         # this prevents the model from ever getting worse
         self.individuals.append(best)
 
-    def evolve(self, inputs: list[float], goal: float, numIterations: int):
+    def evolve(self, inputs: list[float], goal: float, numIterations: int,
+               writeToJson: bool = False, jsonFilename: str = None):
         """
         :param inputs:
         :param goal:
         :param numIterations:
+        :param writeToJson:
+        :param jsonFilename:
         :return: nothing
         """
 
+        if writeToJson:
+            dictionary = dict()
+
         # iterates a numIterations amount of times
-        for _ in range(numIterations):
+        for generationNumber in range(numIterations):
 
             # it calls the inputs on the population
             # this calls each individual in the population
@@ -102,6 +110,14 @@ class Population:
             # printing the value of the best (not necessary)
             print(f"Best is: {best.value}")
 
+            if writeToJson:
+                dictionary[f"Generation {generationNumber}"] = best.asDict()
+
             # creates a new population from the best
             # keeps the best in the population
             self.fromIndividual(self.findBest(goal))
+
+        if writeToJson:
+            filename = jsonFilename if jsonFilename is not None else "bestInPopulation.json"
+            with open(filename, 'w') as f:
+                json.dump(dictionary, f)
