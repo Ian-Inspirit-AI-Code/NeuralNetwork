@@ -27,10 +27,13 @@ def main():
     # how often to store the network data in the json
     storeAsJsonStep = 5
 
+    # number of decimal places to print out
+    decimalPlaces = 3
+
     # creating a new population with the given parameters
     # key word arguments are necessary here (to prevent mixing up the numbers)
     network = GradientNetwork(numInputs=numInputs, nodesInLayer=nodesInLayer, numLayers=numLayers,
-                              maxIter=maximumIterations, learnRate=learnRate)
+                              maxIter=maximumIterations, learnRate=learnRate, decimalPlaces=decimalPlaces)
 
     # the minimum and maximum goals that will be given to the neural network
     minGoal = -50
@@ -40,14 +43,14 @@ def main():
     goal = uniform(minGoal, maxGoal)
 
     # printing the goal
-    print(f"Goal is: {goal}")
+    print(f"Goal is: {goal:.{decimalPlaces}f}")
 
     # creating a random input
     # in a real AI, this would be observed through some means or dataset
     inputs = [uniform(-10, 10) for _ in range(numInputs)]
 
     # printing the inputs
-    print("Inputs are:", inputs, "\n")
+    print(f"Inputs are: {inputs}\n")
 
     # calls evolve to create the best set of weights and biases
     # this will evolve until it reaches 5% of the goal

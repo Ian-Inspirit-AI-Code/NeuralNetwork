@@ -1,11 +1,13 @@
 from NeuralNetwork import NeuralNetwork
+from Node import Node
+
 import json
 
 
 class GradientNetwork(NeuralNetwork):
 
-    def __init__(self, *, numInputs: int, nodesInLayer: int = 5, numLayers: int = 2, nodes=None,
-                 maxIter: int = 1000, learnRate: float = 0.1):
+    def __init__(self, *, numInputs: int, nodesInLayer: int = 5, numLayers: int = 2, nodes: list[Node] = None,
+                 maxIter: int = 1000, learnRate: float = 0.1, decimalPlaces: int = 4):
 
         # calling the NeuralNetwork initialization function
         # this initializes nodes, children variables
@@ -17,6 +19,11 @@ class GradientNetwork(NeuralNetwork):
 
         # a scalar representing how large of adjustments the AI will make
         self.learnRate = learnRate
+
+        # this is how many decimal places are used in printing
+        # this has no impact on calculations
+        # json still uses all decimal places
+        self.decimalPlaces = decimalPlaces
 
     @property
     def size(self):
@@ -50,7 +57,8 @@ class GradientNetwork(NeuralNetwork):
 
             # storing in json if parameters are met
             if storeAsJson and iterationCounter % storeAsJsonStep == 0:
-                # default filename (if not specified) is bestInPopulation
+
+                # default filename (if not specified) is GradientDescentData.json
                 # open in write form clears all previous text in json
                 with open(jsonFilename + ".json", 'w') as f:
                     # dump the dictionary into the json file
@@ -61,7 +69,7 @@ class GradientNetwork(NeuralNetwork):
 
             # printing the value if conditions are met
             if iterationCounter % printValueStep == 0:
-                print(f"Value at iteration {iterationCounter}:", self.value)
+                print(f"Value at iteration {iterationCounter}: {self.value:.{self.decimalPlaces}f}")
 
             # moves onto the next iteration
             # adjusts all the weights according to the gradient
@@ -74,11 +82,12 @@ class GradientNetwork(NeuralNetwork):
             # breaks if it does
             if abs(self.value - goal) < abs(tolerance * goal):
                 # printing the current value
-                print(f"Value at iteration {iterationCounter}:", self.value)
+                print(f"Value at iteration {iterationCounter}: {self.value:.{self.decimalPlaces}f}")
                 break
 
         # how close the neural network reached (in percent)
-        print(f"Reached {abs((self.value - goal) * 100 / goal)} percent of goal after {iterationCounter} iterations")
+        print(f"Reached {abs((self.value - goal) * 100 / goal):.{self.decimalPlaces}f}",
+              f"percent of goal after {iterationCounter} iterations")
 
     def stepGeneration(self, inputs: list[float], goal: float):
         """
