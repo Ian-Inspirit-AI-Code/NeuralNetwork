@@ -126,13 +126,7 @@ class Node:
         # call this node with a list of inputs (from previous layer)
         # applies a sigmoid function on the sum of weights * input
 
-        # self.value = self.sigmoidActivationFunction(self.outputWithoutSigmoid(nums))
-        # print("INPUTS AREEE", nums)
-        # print("BIASES ARE", self.biases)
-        # print("WEIGHTS ARE", self.weights)
         self.value = sum(map(lambda weight, bias, num: weight * num + bias, self.weights, self.biases, nums))
-        # print("VALUE IS", self.value)
-        # print()
 
         return self.value
 
@@ -141,27 +135,28 @@ class Node:
 
         for index, (weight, bias, num) in enumerate(zip(self.weights, self.biases, nums)):
             weightChange, biasChange = self.gradientHelper(weight, bias, num, goal / length)
-
-            # print("GRADIENT GOAL", goal)
-            # print("weights bias:", weight, bias)
-            #
-            # print("value", weight * num + bias)
             weightChange *= learnRate
             biasChange *= learnRate
 
             self.weights[index] -= weightChange
             self.biases[index] -= biasChange
-            # print("changed value", self.weights[index] * num + self.biases[index])
-            # print()
 
     @staticmethod
     def gradientHelper(weight: float, bias: float, num: float, goal: float) -> tuple[float, float]:
+        # this is a precalculated gradient vector function
+        # a gradient is just a vector of partial derivatives of the loss function
+        # with respect to weight and bias
+        # this gives you a vector tangent to the 3d loss function
+
         partialDerivativeRespectWeight = 2 * num * (weight * num + bias - goal)
         partialDerivativeRespectBias = 2 * (bias + weight * num - goal)
 
-        # print("gradients", partialDerivativeRespectWeight, partialDerivativeRespectBias)
-
         return partialDerivativeRespectWeight, partialDerivativeRespectBias
+
+    @staticmethod
+    def loss(weight: float, bias: float, num: float, goal: float) -> float:
+        # this is the square of the error
+        return (weight * num + bias - goal) ** 2
 
     def __deepcopy__(self, memo):
         """
@@ -181,13 +176,13 @@ class Node:
         # does not change the children list
         return Node(weightsCopy, biasesCopy, self.children, self.sigmoid_value)
 
-    def updateWeights(self, weightChange: list[float]):
+    def asDict(self) -> dict:
+        """
+        :return: a dictionary representation of the node
+        """
 
-        self.weights = list(map(lambda weight, change: weight - change, self.weights, weightChange))
-
-    def updateBiases(self, biasChange: list[float]):
-
-        self.biases = list(map(lambda bias, change: bias - change, self.weights, biasChange))
+        # keys are weights and biases
+        return {"Weights": self.weights, "Biases": self.biases}
 
 
 def randomNode(numInputs: int) -> Node:
