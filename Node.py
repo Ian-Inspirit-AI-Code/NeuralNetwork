@@ -1,14 +1,14 @@
 from math import e
-from random import randrange, uniform
+from random import uniform
 
 
 class Node:
 
-    MIN_WEIGHT = -10
-    MAX_WEIGHT = 10
+    MIN_WEIGHT = -3
+    MAX_WEIGHT = 3
 
-    MIN_BIAS = -5
-    MAX_BIAS = 5
+    MIN_BIAS = -1
+    MAX_BIAS = 1
 
     DEFAULT_SIGMOID_VALUE = 0.1
 
@@ -126,9 +126,42 @@ class Node:
         # call this node with a list of inputs (from previous layer)
         # applies a sigmoid function on the sum of weights * input
 
-        self.value = self.sigmoidActivationFunction(self.outputWithoutSigmoid(nums))
+        # self.value = self.sigmoidActivationFunction(self.outputWithoutSigmoid(nums))
+        # print("INPUTS AREEE", nums)
+        # print("BIASES ARE", self.biases)
+        # print("WEIGHTS ARE", self.weights)
+        self.value = sum(map(lambda weight, bias, num: weight * num + bias, self.weights, self.biases, nums))
+        # print("VALUE IS", self.value)
+        # print()
 
         return self.value
+
+    def gradient(self, nums: list[float], goal: float, learnRate):
+        length = len(nums)
+
+        for index, (weight, bias, num) in enumerate(zip(self.weights, self.biases, nums)):
+            weightChange, biasChange = self.gradientHelper(weight, bias, num, goal / length)
+
+            # print("GRADIENT GOAL", goal)
+            # print("weights bias:", weight, bias)
+            #
+            # print("value", weight * num + bias)
+            weightChange *= learnRate
+            biasChange *= learnRate
+
+            self.weights[index] -= weightChange
+            self.biases[index] -= biasChange
+            # print("changed value", self.weights[index] * num + self.biases[index])
+            # print()
+
+    @staticmethod
+    def gradientHelper(weight: float, bias: float, num: float, goal: float) -> tuple[float, float]:
+        partialDerivativeRespectWeight = 2 * num * (weight * num + bias - goal)
+        partialDerivativeRespectBias = 2 * (bias + weight * num - goal)
+
+        # print("gradients", partialDerivativeRespectWeight, partialDerivativeRespectBias)
+
+        return partialDerivativeRespectWeight, partialDerivativeRespectBias
 
     def __deepcopy__(self, memo):
         """
@@ -165,11 +198,11 @@ def randomNode(numInputs: int) -> Node:
 
     # create a list with a random weight (in the range of Min/Max weights)
     # length of list is numInputs
-    randomWeights = [randrange(Node.MIN_WEIGHT, Node.MAX_WEIGHT) for _ in range(numInputs)]
+    randomWeights = [uniform(Node.MIN_WEIGHT, Node.MAX_WEIGHT) for _ in range(numInputs)]
 
     # creates a list with random biases (in the range of Min/Max biases)
     # length of list is numInputs
-    randomBiases = [randrange(Node.MIN_BIAS, Node.MAX_BIAS) for _ in range(numInputs)]
+    randomBiases = [uniform(Node.MIN_BIAS, Node.MAX_BIAS) for _ in range(numInputs)]
 
     # uses default sigmoid value
     defaultSigmoid = Node.DEFAULT_SIGMOID_VALUE

@@ -13,36 +13,35 @@ class GradientNetwork(NeuralNetwork):
 
         self.size = nodesInLayer * numLayers
 
-    @staticmethod
-    def gradient(weights: list[float], biases: list[float], inputs: list[float], goal: float) \
-            -> tuple[list[float], list[float]]:
-        
-        weightsChange = []
-        biasesChange = []
-
-        for _ in range(len(inputs)):
-            weightsChange.append(uniform(-5, 5))
-            biasesChange.append(uniform(-5, 5))
-
-        return weightsChange, biasesChange
-
     def evolve(self, inputs, goal):
 
         for _ in range(self.maxIter):
             self(inputs)
-            print(self.value)
+            print("Current iteration value:", self.value)
             self.stepGeneration(inputs, goal)
 
+    def evolveTillTolerance(self, inputs, goal, tolerance=0):
+        MAXIMUM_ITERATION = 1000
+
+        if tolerance <= 0:
+            tolerance = 0.1
+
+        iterationCounter = 0
+        while iterationCounter < MAXIMUM_ITERATION:
+            if abs(self.value - goal) < abs(tolerance * goal):
+                print(f"Value at iteration {iterationCounter}:", self.value)
+                break
+
+            self(inputs)
+            if iterationCounter % 5 == 0:
+                print(f"Value at iteration {iterationCounter}:", self.value)
+
+            self.stepGeneration(inputs, goal)
+            iterationCounter += 1
+
+        print(f"Reached {abs((self.value - goal) * 100 / goal)} percent of goal after {iterationCounter} iterations")
+
     def stepGeneration(self, inputs, goal):
-        for index in range(self.size):
-            layer = index // self.nodesInLayer
-            numbInLayer = layer % self.nodesInLayer
-            node = self.nodes[layer][numbInLayer]
-
-            weightsChange, biasesChange = self.gradient(node.weights, node.biases, inputs, goal)
-
-            weightsChange = list(map(lambda change: change * self.learnRate, weightsChange))
-            biasesChange = list(map(lambda change: change * self.learnRate, biasesChange))
-
-            node.updateWeights(weightsChange)
-            node.updateBiases(biasesChange)
+        for index in range(self.nodesInLayer):
+            node = self.nodes[0][index]
+            node.gradient(inputs, goal / self.size, self.learnRate)

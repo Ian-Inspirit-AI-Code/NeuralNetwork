@@ -17,7 +17,7 @@ class NeuralNetwork:
             # children are not initialized here
             # array dimensions are numLayers x nodesInLayer
             self.nodes = [[randomNode(numInputs) if layer == 0 else randomNode(nodesInLayer)
-                           for layer in range(nodesInLayer)] for _ in range(numLayers)]
+                           for _ in range(nodesInLayer)] for layer in range(numLayers)]
 
         # if network is given a set of nodes
         else:
