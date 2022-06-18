@@ -90,33 +90,6 @@ class Node:
         # if it is not in its children list, it checks whether it is connected to any of the children
         return self.isInChildren(other) or any(map(lambda child: child.isConnectedTo(other), self.children))
 
-    def outputWithoutSigmoid(self, nums: list[float]) -> float:
-        """
-        :param nums: a list of node outputs (between 0 and 1)
-        :return: the sum after applying a weight to each number (with bias)
-        """
-
-        # applies its weight * num + bias function on each given input
-        # it would sum up and return as output
-        # this is passed into a sigmoid activation function
-        # do not explicitly call this function
-
-        return sum(map(lambda num, weight, bias: num * weight + bias, nums, self.weights, self.biases))
-
-    def sigmoidActivationFunction(self, num: float) -> float:
-        """
-        :param num: a float from the outputWithoutSigmoid function
-        :return: a float between 0 and 1 after applying a sigmoid function
-        """
-
-        # applies a 1 / (1 + e^-cx) sigmoid function where c is the sigmoid value associated with this node
-        # this squashes it between 0-1
-        # do not explicitly call this function
-
-        # to prevent overflows, keep within a certain range
-        value = min(100.0, max(-100.0, self.sigmoid_value * num))
-        return 1 / (1 + e ** -value)
-
     def __call__(self, nums: list[float]) -> float:
         """
         :param nums: list of outputs from previous nodes
