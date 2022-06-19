@@ -75,15 +75,15 @@ class GradientNetwork(NeuralNetwork):
             # adjusts all the weights according to the gradient
             self.stepGeneration(inputs, goal)
 
-            # steps forward in iteration counter
-            iterationCounter += 1
-
             # checking if tolerance thresh hold is met
             # breaks if it does
             if abs(self.value - goal) < abs(tolerance * goal):
                 # printing the current value
                 print(f"Value at iteration {iterationCounter}: {self.value:.{self.decimalPlaces}f}")
                 break
+
+            # steps forward in iteration counter
+            iterationCounter += 1
 
         # how close the neural network reached (in percent)
         print(f"Reached {abs((self.value - goal) * 100 / goal):.{self.decimalPlaces}f}",
