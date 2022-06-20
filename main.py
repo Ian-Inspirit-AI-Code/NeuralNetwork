@@ -9,13 +9,13 @@ def main():
     numLayers = 1
 
     # setting tolerance
-    tolerance = 0.1
+    tolerance = 0.05
 
     # maximum number of generations this would run
     maximumIterations = 1000
 
     # how fast this will learn
-    learnRate = 0.002
+    learnRate = 25
 
     # this is how often the neural network would print the value it outputs
     printValueStep = 5
@@ -36,8 +36,8 @@ def main():
                               maxIter=maximumIterations, learnRate=learnRate, decimalPlaces=decimalPlaces)
 
     # the minimum and maximum goals that will be given to the neural network
-    minGoal = -50
-    maxGoal = 50
+    minGoal = 1
+    maxGoal = nodesInLayer
 
     # creates a random goal in the range of minimum and maximum
     goal = uniform(minGoal, maxGoal)

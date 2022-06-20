@@ -90,6 +90,9 @@ class Node:
         # if it is not in its children list, it checks whether it is connected to any of the children
         return self.isInChildren(other) or any(map(lambda child: child.isConnectedTo(other), self.children))
 
+    def sigmoid(self, num):
+        return 1 / (1 + e ** (-1 * num * self.sigmoid_value)) / self.numInputs
+
     def __call__(self, nums: list[float]) -> float:
         """
         :param nums: list of outputs from previous nodes
@@ -99,7 +102,8 @@ class Node:
         # call this node with a list of inputs (from previous layer)
         # applies a sigmoid function on the sum of weights * input
 
-        self.value = sum(map(lambda weight, bias, num: weight * num + bias, self.weights, self.biases, nums))
+        self.value = sum(map(lambda weight, bias, num: self.sigmoid(weight * num + bias),
+                             self.weights, self.biases, nums))
 
         return self.value
 
@@ -114,15 +118,19 @@ class Node:
             self.weights[index] -= weightChange
             self.biases[index] -= biasChange
 
-    @staticmethod
-    def gradientHelper(weight: float, bias: float, num: float, goal: float) -> tuple[float, float]:
+    def gradientHelper(self, weight: float, bias: float, num: float, goal: float, ) -> tuple[float, float]:
         # this is a precalculated gradient vector function
         # a gradient is just a vector of partial derivatives of the loss function
         # with respect to weight and bias
         # this gives you a vector tangent to the 3d loss function
 
-        partialDerivativeRespectWeight = 2 * num * (weight * num + bias - goal)
-        partialDerivativeRespectBias = 2 * (bias + weight * num - goal)
+        a = weight * num + bias
+        b = e ** (-a * self.sigmoid_value) + 1
+        c = 1 / (b * self.numInputs)
+        d = (c - goal) ** 2
+
+        partialDerivativeRespectBias = 2 * self.sigmoid_value * b * (c - goal) / (b ** 2 * self.numInputs)
+        partialDerivativeRespectWeight = partialDerivativeRespectBias * num
 
         return partialDerivativeRespectWeight, partialDerivativeRespectBias
 
