@@ -94,9 +94,7 @@ class Population:
         """
 
         # creates a dictionary object that will be written to a json file
-        # only creates if writeToJson is true
-        if writeToJson:
-            dictionary = dict()
+        dictionary = dict()
 
         # iterates a numIterations amount of times
         for generationNumber in range(numIterations):
@@ -119,7 +117,7 @@ class Population:
 
             # creates a new population from the best
             # keeps the best in the population
-            self.fromIndividual(self.findBest(goal))
+            self.fromIndividual(best)
 
         # write to a json file if writeToJson is true
         if writeToJson:

@@ -32,7 +32,7 @@ def main():
     print(f"Goal is: {goal}\n")
 
     # calls evolve to create the best set of weights
-    population.evolve(inputs, goal, numIterations, writeToJson=False)
+    population.evolve(inputs, goal, numIterations, writeToJson=True)
 
 
 if __name__ == '__main__':
