@@ -1,145 +1,110 @@
+from __future__ import annotations
+
 from math import e
 from random import uniform
+from typing import Callable, Any
 
 
 class Node:
+    """
+    Each node would take in a list of inputs and return a single output
+    """
 
-    MIN_WEIGHT = -3
-    MAX_WEIGHT = 3
+    DEFAULT_MIN_WEIGHT = -10
+    DEFAULT_MAX_WEIGHT = 10
 
-    MIN_BIAS = -1
-    MAX_BIAS = 1
+    DEFAULT_MIN_BIAS = -5
+    DEFAULT_MAX_BIAS = 5
 
-    DEFAULT_SIGMOID_VALUE = 0.1
-
-    MAX_MUTATION = 0.5
-
-    def __init__(self, weights: list[float], biases: list[float], children: list, sigmoid_value: float):
+    def __init__(self, numInputs: int, weights: list[float] = None, biases: list[float] = None,
+                 layerNumber: int = 0, nodeInLayer: int = 0,
+                 parents: list[Node] = None, children: list[Node] = None,
+                 activation: Callable[[float], float] = lambda x: x,
+                 update: Callable[[Node, list[float], float], None] = lambda _: None) -> None:
         """
-        :param weights: the weight attached to this node
-        :param biases: the bias (constant)
-        :param children: the list of all attached nodes
-        :param sigmoid_value: a float that is used in the sigmoid activation function
+        :param weights:
+        :param biases:
+        :param parents:
+        :param activation:
+        :param update:
         """
 
-        # the length of weights and biases are the number of inputs
-        self.numInputs = len(weights)
+        # amount of inputs this node takes in
+        self.numInputs = numInputs
 
-        # there must be an equal amount of weights and biases because they are applied together
-        # allow difference number of weights/biases and children
-        if len(weights) != len(biases):
-            raise ValueError("Different amount of weights and biases.")
+        # setting random weights if not given
+        if weights is None:
+            weights = [uniform(self.DEFAULT_MIN_WEIGHT, self.DEFAULT_MAX_WEIGHT) for _ in range(numInputs)]
 
-        # these are part of the function that is applied when this node is called
+        # setting random biases if not given
+        if biases is None:
+            biases = [uniform(self.DEFAULT_MIN_BIAS, self.DEFAULT_MAX_BIAS) for _ in range(numInputs)]
+
+        # the inputs, biases, and weights must be equal dimensions
+        if len(biases) != len(weights) != numInputs:
+            raise ValueError(f"The length of weights ({len(weights)} and biases ({len(biases)}) "
+                             f"does not equal numInputs {numInputs}")
+
         self.weights = weights
         self.biases = biases
 
-        # a list of all the attached nodes
-        self.children = children
+        # because parents pass the inputs, the number of parents must equal number of inputs
+        # this check excludes empty parents, the nodes in the first layer
+        if parents and len(parents) != self.numInputs:
+            raise ValueError("Length of parents does not match given number of inputs")
 
-        # sigmoid_value is the coefficient used in sigmoid function
-        # 1 / (1 + e^-cx) where c is sigmoid_value
-        self.sigmoid_value = sigmoid_value
+        # the parent nodes
+        self.parents = parents
+
+        # the children nodes
+        self.children = children
 
         # this is the last value associated with this node
         # this will be used to call the next in layer
         self.value = 0
 
-    def mutate(self):
+        # these are functions used in calling and updating the node
+        self.activation = activation
+        self.fullUpdate = update
+
+        self.update = lambda inputs, goal: update(self, inputs, goal)
+
+        # indices that indicate spacial orientation of node
+        self.layerNumber = layerNumber
+        self.nodeInLayer = nodeInLayer
+
+    def __call__(self, inputFloat: float, index: int, callChildren: bool = True) -> None:
         """
-        This function would change the weights by a random percent, up to MAX_MUTATION
+        :param inputFloat:
+        :param index:
+        :param callChildren:
         """
 
-        # mutating the weights by a random amount within -max and max
-        for index in range(len(self.weights)):
-            change = uniform(-self.MAX_MUTATION, self.MAX_MUTATION)
-            self.weights[index] *= (1 - change)
+        # weights and biases used to transform the given input
+        weight, bias = self.weights[index], self.biases[index]
 
-        # mutating the biases by a random amount within -max and max
-        for index in range(len(self.biases)):
-            change = uniform(-self.MAX_MUTATION, self.MAX_MUTATION)
-            self.biases[index] *= (1 - change)
+        # calculating result
+        resultWithoutActivation = weight * inputFloat + bias
+        result = self.activation(resultWithoutActivation)
 
-        # returning the mutated node
-        return self
+        # adding the result to value
+        self.value += result
 
-    def setChildren(self, newChildren: list):
+        # exits the function call when there are no children (or specified to not call children)
+        if not (callChildren and self.children):
+            return
+
+        # calling each node in the child layer
+        list(map(lambda child: child(inputFloat, self.nodeInLayer, callChildren), self.children))
+
+    def setChildren(self, newChildren: list[Node]) -> None:
         """
-        :param newChildren: the new children list that this node will be
-        :return: does not return anything
+        :param newChildren:
         """
 
         self.children = newChildren
 
-    def isInChildren(self, other) -> bool:
-        """
-        :param other: Node
-        :return: returns other in list of children
-        """
-
-        # does a check whether another node is in its list of children
-        return other in self.children
-
-    def isConnectedTo(self, other) -> bool:
-        """
-        :param other: Node
-        :return: one of descendents, no matter how deep
-        """
-
-        # first checks whether this other is in the children list
-        # if it is not in its children list, it checks whether it is connected to any of the children
-        return self.isInChildren(other) or any(map(lambda child: child.isConnectedTo(other), self.children))
-
-    def sigmoid(self, num):
-        return 1 / (1 + e ** (-1 * num * self.sigmoid_value)) / self.numInputs
-
-    def __call__(self, nums: list[float]) -> float:
-        """
-        :param nums: list of outputs from previous nodes
-        :return the value of self
-        """
-
-        # call this node with a list of inputs (from previous layer)
-        # applies a sigmoid function on the sum of weights * input
-
-        self.value = sum(map(lambda weight, bias, num: self.sigmoid(weight * num + bias),
-                             self.weights, self.biases, nums))
-
-        return self.value
-
-    def gradient(self, nums: list[float], goal: float, learnRate):
-        length = len(nums)
-
-        for index, (weight, bias, num) in enumerate(zip(self.weights, self.biases, nums)):
-            weightChange, biasChange = self.gradientHelper(weight, bias, num, goal / length)
-            weightChange *= learnRate
-            biasChange *= learnRate
-
-            self.weights[index] -= weightChange
-            self.biases[index] -= biasChange
-
-    def gradientHelper(self, weight: float, bias: float, num: float, goal: float, ) -> tuple[float, float]:
-        # this is a precalculated gradient vector function
-        # a gradient is just a vector of partial derivatives of the loss function
-        # with respect to weight and bias
-        # this gives you a vector tangent to the 3d loss function
-
-        a = weight * num + bias
-        b = e ** (-a * self.sigmoid_value) + 1
-        c = 1 / (b * self.numInputs)
-        d = (c - goal) ** 2
-
-        partialDerivativeRespectBias = 2 * self.sigmoid_value * b * (c - goal) / (b ** 2 * self.numInputs)
-        partialDerivativeRespectWeight = partialDerivativeRespectBias * num
-
-        return partialDerivativeRespectWeight, partialDerivativeRespectBias
-
-    @staticmethod
-    def loss(weight: float, bias: float, num: float, goal: float) -> float:
-        # this is the square of the error
-        return (weight * num + bias - goal) ** 2
-
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> Node:
         """
         :param memo: not used. this is a parameter because __deepcopy__ overrides a default function
         :return: the copied node object
@@ -154,10 +119,11 @@ class Node:
         biasesCopy = [bias for bias in self.biases]
 
         # returning the copied node
-        # does not change the children list
-        return Node(weightsCopy, biasesCopy, self.children, self.sigmoid_value)
+        # does not change the children or parent list
+        return Node(self.numInputs, weightsCopy, biasesCopy, self.layerNumber, self.nodeInLayer,
+                    self.parents, self.children, self.activation, self.fullUpdate)
 
-    def asDict(self) -> dict:
+    def asDict(self) -> dict[str, list[float]]:
         """
         :return: a dictionary representation of the node
         """
@@ -166,26 +132,93 @@ class Node:
         return {"Weights": self.weights, "Biases": self.biases}
 
 
-def randomNode(numInputs: int) -> Node:
-    """
-    :param numInputs: number of inputs it will receive
-    :return: a node generated with random weights/biases
-    """
+def sigmoidActivationFunction(sigmoid_value: float) -> Callable[[float], float]:
+    return lambda value: 1 / (1 + e ** max(min(-sigmoid_value * value, 25), -25))
 
-    # create a list with a random weight (in the range of Min/Max weights)
-    # length of list is numInputs
-    randomWeights = [uniform(Node.MIN_WEIGHT, Node.MAX_WEIGHT) for _ in range(numInputs)]
 
-    # creates a list with random biases (in the range of Min/Max biases)
-    # length of list is numInputs
-    randomBiases = [uniform(Node.MIN_BIAS, Node.MAX_BIAS) for _ in range(numInputs)]
+def reluActivationFunction() -> Callable[[float], float]:
+    return lambda value: max(0, value)
 
-    # uses default sigmoid value
-    defaultSigmoid = Node.DEFAULT_SIGMOID_VALUE
 
-    # does not initialize children
-    # must initialize later in the calling of random node
-    emptyChildren = []
+def gradientUpdateNoActivation(learnRate: float = 0.002, gradient: list[tuple[float, float]] = None) \
+        -> Callable[[Node, list[float], float], None]:
 
-    # creates a new node with these variables
-    return Node(weights=randomWeights, biases=randomBiases, children=emptyChildren, sigmoid_value=defaultSigmoid)
+    def update(node: Node, inputs: list[float], goal: float):
+        length = len(inputs)
+
+        for index, (weight, bias, num) in enumerate(zip(node.weights, node.biases, inputs)):
+            if gradient is None:
+                weightChange, biasChange = gradientHelperNoActivation(weight, bias, num, goal / length)
+            else:
+                weightChange, biasChange = gradient[index]
+
+            weightChange *= learnRate
+            biasChange *= learnRate
+
+            node.weights[index] -= weightChange
+            node.biases[index] -= biasChange
+
+    return update
+
+
+def gradientHelperNoActivation(weight: float, bias: float, num: float, goal: float) -> tuple[float, float]:
+    # this is a precalculated gradient vector function
+    # a gradient is just a vector of partial derivatives of the loss function
+    # with respect to weight and bias
+    # this gives you a vector tangent to the 3d loss function
+
+    partialDerivativeRespectWeight = 2 * num * (weight * num + bias - goal)
+    partialDerivativeRespectBias = 2 * (bias + weight * num - goal)
+
+    return partialDerivativeRespectWeight, partialDerivativeRespectBias
+
+
+def gradientUpdateWithSigmoidActivation(learnRate: float = 25, sigmoid_value: float = 5,
+                                        gradient: list[tuple[float, float]] = None) -> Callable[[Node], None]:
+    def update(node: Node, inputs: list[float], goal: float):
+        length = len(inputs)
+
+        for index, (weight, bias, num) in enumerate(zip(node.weights, node.biases, inputs)):
+            if gradient is None:
+                weightChange, biasChange = gradientHelperWithSigmoidActivation(
+                    weight, bias, num, goal / length, sigmoid_value, node.numInputs)
+            else:
+                weightChange, biasChange = gradient[index]
+
+            weightChange *= learnRate
+            biasChange *= learnRate
+
+            node.weights[index] -= weightChange
+            node.biases[index] -= biasChange
+
+    return update
+
+
+def gradientHelperWithSigmoidActivation(weight: float, bias: float, num: float, goal: float, sigmoid_value: float,
+                                        numInputs: int) -> tuple[float, float]:
+    # this is a precalculated gradient vector function
+    # a gradient is just a vector of partial derivatives of the loss function
+    # with respect to weight and bias
+    # this gives you a vector tangent to the 3d loss function
+
+    a = weight * num + bias
+    b = e ** (-a * sigmoid_value) + 1
+    c = 1 / (b * numInputs)
+    # d = (c - goal) ** 2
+
+    partialDerivativeRespectBias = 2 * sigmoid_value * b * (c - goal) / (b ** 2 * numInputs)
+    partialDerivativeRespectWeight = partialDerivativeRespectBias * num
+
+    return partialDerivativeRespectWeight, partialDerivativeRespectBias
+
+
+def mutateUpdate(maxMutation: float = 0.5) -> Callable[[Node, list[float], float], None]:
+    def update(node: Node, _: Any, __: Any):
+        for index in range(node.numInputs):
+            change = uniform(-maxMutation, maxMutation)
+            node.biases[index] *= (1 - change)
+
+            change = uniform(-maxMutation, maxMutation)
+            node.weights[index] *= (1 - change)
+
+    return update
