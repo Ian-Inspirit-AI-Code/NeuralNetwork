@@ -3,20 +3,20 @@ from random import uniform
 
 
 def main():
-    numInputs = 2
-    numOutputs = 1
+    numInputs = 3
+    numOutputs = 3
 
-    numIndividuals = 10
+    numIndividuals = 15
 
-    # activationFunctionString = "relu"
-    activationFunctionString = "sigmoid"
+    activationFunctionString = "relu"
+    # activationFunctionString = "sigmoid"
 
     population = Population(numIndividuals=numIndividuals, numInputs=numInputs, numOutputs=numOutputs,
-                            nodesInLayer=5, numLayers=2, activationFunctionString=activationFunctionString,
+                            nodesInLayer=5, numLayers=5, activationFunctionString=activationFunctionString,
                             lossFunction=lossFunction)
 
     inputs = [uniform(-10, 10) for _ in range(numInputs)]
-    numIterations = 10
+    numIterations = 15
 
     print(f"{inputs=}")
 

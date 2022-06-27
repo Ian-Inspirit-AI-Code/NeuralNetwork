@@ -44,18 +44,15 @@ class BaseNeuralNetwork(ABC):
         if self.numLayers == 1:
             return
 
-        parents = []
-        children = self.nodes[1]
+        for layer in range(self.numLayers):
 
-        for layer in range(self.numLayers - 1):
+            parents = self.nodes[layer - 1] if layer > 0 else []
+            children = self.nodes[layer + 1] if layer < (self.numLayers - 1) else []
 
             for index in range(len(self.nodes[layer])):
                 node = self.nodes[layer][index]
-                node.parents = parents
-                node.children = children
-
-            parents = children
-            children = self.nodes[layer + 1]
+                node.setParents(parents)
+                node.setChildren(children)
 
     def __call__(self, inputs: list[float]) -> list[float]:
         if len(inputs) != self.numInputs:

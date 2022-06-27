@@ -80,6 +80,9 @@ class Node:
         :param callChildren:
         """
 
+        if index == 0:
+            self.value = 0
+
         # weights and biases used to transform the given input
         weight, bias = self.weights[index], self.biases[index]
 
@@ -103,6 +106,9 @@ class Node:
         """
 
         self.children = newChildren
+
+    def setParents(self, newParents: list[Node]) -> None:
+        self.parents = newParents
 
     def __deepcopy__(self, memo) -> Node:
         """
