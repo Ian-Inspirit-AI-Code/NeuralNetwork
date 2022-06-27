@@ -28,6 +28,8 @@ class Brain(BaseNeuralNetwork):
             return reluActivationFunction()(value)
         elif self.activationFunctionString == "sigmoid":
             return sigmoidActivationFunction(self.sigmoid_value)(value)
+        elif self.activationFunctionString == "none":
+            return value
 
         raise ValueError("Options for activation function are 'relu' and 'sigmoid'.")
 
@@ -103,8 +105,8 @@ class Population:
         # this prevents the model from ever getting worse
         self.individuals.append(best)
 
-    def evolve(self, inputs: list[float], numIterations: int,
-               writeToJson: bool = False, jsonFilename: str = "bestInPopulation"):
+    def evolveSingleInput(self, inputs: list[float], numIterations: int,
+                          writeToJson: bool = False, jsonFilename: str = "bestInPopulation"):
         """
         :param inputs:
         :param numIterations:
@@ -146,3 +148,10 @@ class Population:
             with open(jsonFilename + ".json", 'w') as f:
                 # dump the dictionary into the json file
                 json.dump(dictionary, f, indent=4)
+
+    def evolve(self, dataset: list[list[float]], numIterations: int, numEpochs: int,
+               writeToJson: bool = False, jsonFilename: str = "bestInPopulation"):
+
+        for _ in range(numEpochs):
+            for inputs in dataset:
+                self.evolveSingleInput(inputs, numIterations, writeToJson, jsonFilename)
