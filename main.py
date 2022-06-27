@@ -11,18 +11,18 @@ from Point import Point
 
 
 def main():
-    numberPoints = 5
+    numberPoints = 10
 
     numInputs = numberPoints * 2
     numOutputs = 2
 
-    numIndividuals = 15
+    numIndividuals = 20
 
-    # activationFunctionString = "relu"
+    activationFunctionString = "relu"
     # activationFunctionString = "sigmoid"
-    activationFunctionString = "none"
+    # activationFunctionString = "none"
 
-    nodesInLayer = 5
+    nodesInLayer = 10
     numLayers = 5
 
     population = Population(numIndividuals=numIndividuals, numInputs=numInputs, numOutputs=numOutputs,
@@ -30,22 +30,22 @@ def main():
                             activationFunctionString=activationFunctionString,
                             lossFunction=lossFunction)
 
-    trainingSize = 20
+    trainingSize = 300
 
-    xRange = (-10, 10)
-    slopeRange = (-5, 5)
+    xRange = (0, 20)
+    slopeRange = (0, 20)
     inputs = [createRoughlyLinearScatter(numberPoints, xRange, slopeRange) for _ in range(trainingSize)]
-    numIterations = 3
-    numEpoch = 5
+    numIterations = 5
+    numEpoch = 25
 
     xMin, xMax, yMin, yMax = xRange[0] * 1.5, xRange[1] * 1.5, xRange[0] * slopeRange[1], xRange[1] * slopeRange[1]
     graph = Graph(xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax, yLabelInterval=10, xLabelInterval=2)
 
     # population.evolveSingleInput(inputs, numEpoch)
-    population.evolve(inputs, numIterations, numEpoch)
+    model = population.evolve(inputs, numIterations, numEpoch)
 
     testInput = createRoughlyLinearScatter(numberPoints, xRange, slopeRange)
-    population(testInput)
+    model(testInput)
 
     x = testInput[:numberPoints]
     y = testInput[numberPoints:]
@@ -53,11 +53,13 @@ def main():
     for a, b in zip(x, y):
         graph.plot(Point(a, b))
 
-    slope, intercept = population.findBest(testInput).value
+    slope, intercept = model.value
     print(slope, intercept)
     line = SlopeIntercept(slope, intercept)
     graph.createLine(line, plotPoints=False)
     graph.display()
+
+    model.toJson()
 
 
 def createRoughlyLinearScatter(numPoints, xRange: tuple[float, float], slopeRange: tuple[float, float]) -> list[float]:

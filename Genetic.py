@@ -5,6 +5,7 @@ from Node import Node, mutateUpdate, sigmoidActivationFunction, reluActivationFu
 
 from typing import Callable
 from copy import deepcopy
+from random import shuffle
 
 import json
 
@@ -130,7 +131,7 @@ class Population:
             best = self.findBest(inputs)
 
             # printing the value of the best (not necessary)
-            print(f"Best is: {best.value}")
+            # print(f"Best is: {best.value}")
 
             # adding the best in current generation
             # dictionary will always be created. your python compiler may give a warning here
@@ -141,6 +142,8 @@ class Population:
             # keeps the best in the population
             self.fromIndividual(best)
 
+            return best
+
         # write to a json file if writeToJson is true
         if writeToJson:
             # default filename (if not specified) is bestInPopulation
@@ -150,8 +153,14 @@ class Population:
                 json.dump(dictionary, f, indent=4)
 
     def evolve(self, dataset: list[list[float]], numIterations: int, numEpochs: int,
-               writeToJson: bool = False, jsonFilename: str = "bestInPopulation"):
+               writeToJson: bool = False, jsonFilename: str = "bestInPopulation") -> Brain:
 
-        for _ in range(numEpochs):
+        best = None
+        for epochNumber in range(numEpochs):
             for inputs in dataset:
-                self.evolveSingleInput(inputs, numIterations, writeToJson, jsonFilename)
+                best = self.evolveSingleInput(inputs, numIterations, writeToJson, jsonFilename)
+
+            shuffle(dataset)
+            print("Finished epoch", epochNumber)
+
+        return best

@@ -4,6 +4,8 @@ from copy import deepcopy
 from Node import Node
 from abc import ABC, abstractmethod
 
+import json
+
 
 class BaseNeuralNetwork(ABC):
 
@@ -71,7 +73,7 @@ class BaseNeuralNetwork(ABC):
 
     def asDict(self) -> dict:
         """
-        :return: a json representation of this neural network
+        :return: a dict representation of this neural network
         """
 
         # the keys are the layer number and the node number (in each layer)
@@ -79,6 +81,10 @@ class BaseNeuralNetwork(ABC):
         # makes a dict for each layer, and a dict for each layer in the network
         return {f"Layer {numLayer}": {f"Node {numberNode}": node.asDict() for (numberNode, node) in enumerate(layer)}
                 for (numLayer, layer) in enumerate(self.nodes)}
+
+    def toJson(self, filename: str = "NeuralNetwork") -> None:
+        with open(filename + ".json", 'w') as f:
+            json.dump(self.asDict(), f, indent=4)
 
     @abstractmethod
     def updateNetwork(self) -> BaseNeuralNetwork:
