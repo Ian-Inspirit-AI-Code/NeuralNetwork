@@ -11,7 +11,7 @@ from Point import Point
 
 
 def main():
-    numberPoints = 10
+    numberPoints = 5
 
     numInputs = numberPoints * 2
     numOutputs = 2
@@ -30,25 +30,30 @@ def main():
                             activationFunctionString=activationFunctionString,
                             lossFunction=lossFunction)
 
+    trainingSize = 20
+
     xRange = (-10, 10)
     slopeRange = (-5, 5)
-    inputs = createRoughlyLinearScatter(numberPoints, xRange, slopeRange)
-    numEpoch = 15
+    inputs = [createRoughlyLinearScatter(numberPoints, xRange, slopeRange) for _ in range(trainingSize)]
+    numIterations = 3
+    numEpoch = 5
 
     xMin, xMax, yMin, yMax = xRange[0] * 1.5, xRange[1] * 1.5, xRange[0] * slopeRange[1], xRange[1] * slopeRange[1]
     graph = Graph(xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax, yLabelInterval=10, xLabelInterval=2)
-    x = inputs[:numberPoints]
-    y = inputs[numberPoints:]
+
+    # population.evolveSingleInput(inputs, numEpoch)
+    population.evolve(inputs, numIterations, numEpoch)
+
+    testInput = createRoughlyLinearScatter(numberPoints, xRange, slopeRange)
+    population(testInput)
+
+    x = testInput[:numberPoints]
+    y = testInput[numberPoints:]
 
     for a, b in zip(x, y):
         graph.plot(Point(a, b))
 
-    print(f"{inputs=}")
-
-    population.evolveSingleInput(inputs, numEpoch)
-
-    population(inputs)
-    slope, intercept = population.findBest(inputs).value
+    slope, intercept = population.findBest(testInput).value
     print(slope, intercept)
     line = SlopeIntercept(slope, intercept)
     graph.createLine(line, plotPoints=False)
