@@ -86,6 +86,17 @@ class BaseNeuralNetwork(ABC):
         with open(filename + ".json", 'w') as f:
             json.dump(self.asDict(), f, indent=4)
 
+    def fromJson(self, filename: str = "NeuralNetwork") -> None:
+        with open(filename + ".json", 'r') as f:
+            data = json.load(f)
+
+        for layerNumber in range(self.numLayers):
+            for nodeNumber in range(len(self.nodes[layerNumber])):
+                node = self.nodes[layerNumber][nodeNumber]
+                nodeDict = data[f"Layer {layerNumber}"][f"Node {nodeNumber}"]
+
+                node.fromDict(nodeDict)
+
     @abstractmethod
     def updateNetwork(self) -> BaseNeuralNetwork:
         pass

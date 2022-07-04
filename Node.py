@@ -137,6 +137,10 @@ class Node:
         # keys are weights and biases
         return {"Weights": self.weights, "Biases": self.biases}
 
+    def fromDict(self, dictionary: dict[str, list[float]]) -> None:
+        self.weights = dictionary["Weights"]
+        self.biases = dictionary["Biases"]
+
 
 def sigmoidActivationFunction(sigmoid_value: float) -> Callable[[float], float]:
     return lambda value: 1 / (1 + e ** max(min(-sigmoid_value * value, 25), -25))

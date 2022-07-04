@@ -1,63 +1,93 @@
-from Genetic import Population
+import json.decoder
+
+from Genetic import Population, Brain
 from random import uniform
 
 import numpy as np
 
-import sys
-sys.path.append('C:\\Users\\ianch\\PycharmProjects\\InspiritAI\\Regression')
-from Graph import Graph
-from Line import SlopeIntercept
-from Point import Point
+numberPoints = 20
+
+numInputs = numberPoints * 2
+numOutputs = 2
+
+numIndividuals = 30
+
+# activationFunctionString = "relu"
+# activationFunctionString = "sigmoid"
+activationFunctionString = "none"
+
+nodesInLayer = 4
+numLayers = 3
+
+xRange = (0, 150)
+slopeRange = (0, 10)
 
 
 def main():
-    numberPoints = 10
+    import sys
+    sys.path.append('C:\\Users\\ianch\\PycharmProjects\\InspiritAI\\Regression')
+    from Graph import Graph
+    from Line import SlopeIntercept
+    from Point import Point
 
-    numInputs = numberPoints * 2
-    numOutputs = 2
+    model = Brain(numInputs=numInputs, numOutputs=numOutputs,
+                  nodesInLayer=nodesInLayer, numLayers=numLayers,
+                  activationFunctionString=activationFunctionString)
 
-    numIndividuals = 20
+    try:
+        model.fromJson("NeuralNetwork")
+    except json.decoder.JSONDecodeError:
+        print("Need to train the neural network first.")
+        return
 
-    activationFunctionString = "relu"
-    # activationFunctionString = "sigmoid"
-    # activationFunctionString = "none"
+    testInput = createRoughlyLinearScatter(numberPoints, xRange, slopeRange)
 
-    nodesInLayer = 10
-    numLayers = 5
+    x = testInput[:numberPoints]
+    y = testInput[numberPoints:]
 
+    xMin, xMax = min(x), max(x)
+    yMin, yMax = min(y), max(y)
+    xLabel = (xMax - xMin) // 10
+    yLabel = (yMax - yMin) // 10
+
+    graph = Graph(xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax, xLabelInterval=xLabel, yLabelInterval=yLabel)
+
+    for pointTuple in zip(x, y):
+        graph.plot(Point(*pointTuple))
+        print(pointTuple)
+
+    model(testInput)
+    slope, intercept = model.value
+    line = SlopeIntercept(slope, intercept)
+    graph.createLine(line, plotPoints=False)
+
+    print(slope, intercept)
+    graph.display()
+
+
+def trainLinearRegression():
     population = Population(numIndividuals=numIndividuals, numInputs=numInputs, numOutputs=numOutputs,
                             nodesInLayer=nodesInLayer, numLayers=numLayers,
                             activationFunctionString=activationFunctionString,
                             lossFunction=lossFunction)
 
-    trainingSize = 300
+    try:
+        model = Brain(numInputs=numInputs, numOutputs=numOutputs,
+                      nodesInLayer=nodesInLayer, numLayers=numLayers,
+                      activationFunctionString=activationFunctionString)
+        model.fromJson("NeuralNetwork")
+        population.fromIndividual(model)
+    except json.decoder.JSONDecodeError:
+        pass
 
-    xRange = (0, 20)
-    slopeRange = (0, 20)
+    trainingSize = 100
+
     inputs = [createRoughlyLinearScatter(numberPoints, xRange, slopeRange) for _ in range(trainingSize)]
-    numIterations = 5
-    numEpoch = 25
-
-    xMin, xMax, yMin, yMax = xRange[0] * 1.5, xRange[1] * 1.5, xRange[0] * slopeRange[1], xRange[1] * slopeRange[1]
-    graph = Graph(xMin=xMin, xMax=xMax, yMin=yMin, yMax=yMax, yLabelInterval=10, xLabelInterval=2)
+    numIterations = 10
+    numEpoch = 10
 
     # population.evolveSingleInput(inputs, numEpoch)
     model = population.evolve(inputs, numIterations, numEpoch)
-
-    testInput = createRoughlyLinearScatter(numberPoints, xRange, slopeRange)
-    model(testInput)
-
-    x = testInput[:numberPoints]
-    y = testInput[numberPoints:]
-
-    for a, b in zip(x, y):
-        graph.plot(Point(a, b))
-
-    slope, intercept = model.value
-    print(slope, intercept)
-    line = SlopeIntercept(slope, intercept)
-    graph.createLine(line, plotPoints=False)
-    graph.display()
 
     model.toJson()
 
@@ -92,4 +122,5 @@ def lossFunction(inputs: list[float], outputs: list[float]) -> float:
 
 
 if __name__ == "__main__":
+    # trainLinearRegression()
     main()
